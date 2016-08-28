@@ -44,15 +44,20 @@ public class CodeChecker {
     private boolean isFormattedCorrectly() throws IOException {
         //go through file line by line
         List<String> lines = Files.readAllLines(Paths.get(filePathName));
+
+        //used to check if a line is a comment
         boolean isComment = false;
-        //check if comments are well formatted
+
+        //check if comments are well formatted,if not then return false immediately.
         if(!areCommentsCorrectlyFormatted())return false;
 
         //go through each character on each line
         for(String line : lines) {
             for (Character character : line.toCharArray()) {
-                //check for single and multi line comments
+
+                //check for single and multi line comments,if its a comment just go break and go to next line.
                 isComment = isComment(line);
+                //if(isComment)break;
                 //regex tests for opening brackets
                 if (character.toString().matches("([\\[({])") && !isComment) {
                     System.out.println(character);
@@ -70,10 +75,18 @@ public class CodeChecker {
         return stack.isEmpty();
     }
 
+    /*
+        returns true if a line is considered a comment,false otherwise.
+     */
     private boolean isComment(String line){
+        //matches a single line comment eg. // hello world
         if(line.matches(".*?\\/\\/.*?"))return true;
+
+        //matches multi line comments including new line
         else if(line.matches("/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*/"))return true;
+        // matches whitespace followed by asterisks for multi line comments on a single line.
         else if(line.matches("\\s*?\\*.*?"))return true;
+        //matches an ending of a multi line comment on a single line.
         else if(line.matches("\\s*?\\*\\/\\s*?"))return true;
         return false;
     }
@@ -88,12 +101,14 @@ public class CodeChecker {
 
             for(String line : lines){
                 if(line.matches(".*?\\/\\/.*?"))return true;
-                else if(fileContent.matches("/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*/"))return true;
+                else if(line.matches("\\s*?\\*.*?"))return true;//matches an ending of a multi line comment on a single line.
+                else if(line.matches("\\s*?\\*\\/\\s*?"))return true;
+                else if(line.matches("\\s*?/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*/\\s*?"))return true;
             }
         }catch(IOException e){
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     /*
